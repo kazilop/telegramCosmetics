@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Салон красоты - Мини-приложение</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <div id="loader" class="loader">
+        <div class="loader-spinner"></div>
+      </div>
+      
+      <div id="main-content" class="main-content hidden">
+        <!-- Контент будет добавлен динамически -->
+      </div>
+      
+      <!-- Навигация -->
+      <nav class="nav-bar">
+        <div class="nav-item active" data-page="home">
+          <i class="icon icon-home"></i>
+          <span>Главная</span>
+        </div>
+        <div class="nav-item" data-page="appointments">
+          <i class="icon icon-calendar"></i>
+          <span>Записи</span>
+        </div>
+        <div class="nav-item" data-page="shop">
+          <i class="icon icon-shop"></i>
+          <span>Магазин</span>
+        </div>
+        <div class="nav-item" data-page="profile">
+          <i class="icon icon-profile"></i>
+          <span>Профиль</span>
+        </div>
+      </nav>
+    </div>
+  </div>
+  
+  <!-- Шаблоны -->
+  
+  <!-- Главная страница -->
+  <template id="home-template">
+    <div class="page">
+      <h1>Добро пожаловать!</h1>
+      <div class="section">
+        <h2>Онлайн-запись</h2>
+        <button id="btn-book-appointment" class="btn btn-primary">Записаться на процедуру</button>
+      </div>
+      
+      <div class="section">
+        <h2>Частые вопросы</h2>
+        <div id="faq-list">
+          <!-- FAQ будут добавлены динамически -->
+        </div>
+        <button id="btn-all-faqs" class="btn btn-secondary">Все вопросы</button>
+      </div>
+      
+      <div class="section">
+        <h2>Рекомендации</h2>
+        <button id="btn-preparations" class="btn btn-secondary">Подготовка к процедуре</button>
+        <button id="btn-aftercare" class="btn btn-secondary">Уход после процедуры</button>
+      </div>
+      
+      <div class="section">
+        <h2>Обратная связь</h2>
+        <button id="btn-feedback" class="btn btn-secondary">Оценить визит</button>
+        <button id="btn-chat" class="btn btn-secondary">Чат с администратором</button>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Страница записей -->
+  <template id="appointments-template">
+    <div class="page">
+      <h1>Мои записи</h1>
+      <button id="btn-new-appointment" class="btn btn-primary">Новая запись</button>
+      
+      <div id="appointments-list" class="list">
+        <!-- Записи будут добавлены динамически -->
+      </div>
+      
+      <div class="section">
+        <h2>Информация</h2>
+        <div id="appointment-info">
+          <p>Количество посещений: <span id="visits-count">0</span></p>
+          <p>Баланс: <span id="balance">0</span> руб.</p>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Страница магазина -->
+  <template id="shop-template">
+    <div class="page">
+      <h1>Магазин</h1>
+      <div class="section">
+        <div class="search-bar">
+          <input type="text" id="search-products" placeholder="Поиск товаров...">
+        </div>
+      </div>
+      
+      <div id="products-list" class="products-grid">
+        <!-- Товары будут добавлены динамически -->
+      </div>
+      
+      <div id="cart" class="cart hidden">
+        <h2>Корзина</h2>
+        <div id="cart-items">
+          <!-- Товары в корзине будут добавлены динамически -->
+        </div>
+        <div class="cart-total">
+          <p>Итого: <span id="cart-total-amount">0</span> руб.</p>
+          <button id="btn-checkout" class="btn btn-primary">Оформить заказ</button>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Страница профиля -->
+  <template id="profile-template">
+    <div class="page">
+      <h1>Профиль</h1>
+      
+      <div class="section user-info">
+        <h2>Информация</h2>
+        <p>ID: <span id="user-id"></span></p>
+        <p>Посещения: <span id="user-visits">0</span></p>
+        <p>Баланс: <span id="user-balance">0</span> руб.</p>
+      </div>
+      
+      <div class="section">
+        <h2>Дополнительно</h2>
+        <button id="btn-subscription" class="btn btn-secondary">Оформить подписку</button>
+        <button id="btn-photo-check" class="btn btn-secondary">Отправить фото зоны</button>
+        <button id="btn-refer-friend" class="btn btn-secondary">Рекомендовать друзьям</button>
+      </div>
+      
+      <div class="section">
+        <h2>Документы</h2>
+        <button id="btn-agreement" class="btn btn-text">Согласие на обработку данных</button>
+        <button id="btn-procedure-agreement" class="btn btn-text">Согласие на процедуру</button>
+        <button id="btn-contract" class="btn btn-text">Договор на покупку абонемента</button>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Форма записи на процедуру -->
+  <template id="appointment-form-template">
+    <div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Запись на процедуру</h2>
+          <button class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="appointment-form">
+            <div class="form-group">
+              <label for="service">Процедура:</label>
+              <select id="service" name="service" required>
+                <option value="">Выберите процедуру</option>
+                <option value="facial">Уход за лицом</option>
+                <option value="massage">Массаж</option>
+                <option value="laser">Лазерная эпиляция</option>
+                <option value="manicure">Маникюр</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="date">Дата:</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="time">Время:</label>
+              <select id="time" name="time" required>
+                <option value="">Выберите время</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="comments">Комментарии:</label>
+              <textarea id="comments" name="comments"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Записаться</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Форма оценки визита -->
+  <template id="feedback-form-template">
+    <div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Оценка визита</h2>
+          <button class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="feedback-form">
+            <div class="form-group">
+              <label for="appointment">Выберите визит:</label>
+              <select id="appointment" name="appointment" required>
+                <!-- Записи будут добавлены динамически -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Оценка:</label>
+              <div class="rating">
+                <input type="radio" id="star5" name="rating" value="5"><label for="star5"></label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4"></label>
+                <input type="radio" id="star3" name="rating" value="3"><label for="star3"></label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2"></label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1"></label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="feedback-comments">Комментарии:</label>
+              <textarea id="feedback-comments" name="comments"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Отправить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Форма рекомендации друзьям -->
+  <template id="referral-form-template">
+    <div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Рекомендовать друзьям</h2>
+          <button class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="referral-form">
+            <div id="referrals-list">
+              <div class="referral-item">
+                <div class="form-group">
+                  <label for="referral-name-1">Имя:</label>
+                  <input type="text" id="referral-name-1" name="name[]" required>
+                </div>
+                <div class="form-group">
+                  <label for="referral-phone-1">Телефон:</label>
+                  <input type="tel" id="referral-phone-1" name="phone[]" required>
+                </div>
+              </div>
+            </div>
+            
+            <button type="button" id="add-referral" class="btn btn-secondary">Добавить еще</button>
+            <button type="submit" class="btn btn-primary">Отправить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Форма чата с администратором -->
+  <template id="chat-template">
+    <div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Чат с администратором</h2>
+          <button class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="chat-messages" class="chat-messages">
+            <!-- Сообщения будут добавлены динамически -->
+            <div class="message admin">
+              <div class="message-content">Здравствуйте! Чем могу помочь?</div>
+              <div class="message-time">10:00</div>
+            </div>
+          </div>
+          
+          <form id="chat-form">
+            <div class="chat-input">
+              <input type="text" id="message" name="message" placeholder="Введите сообщение..." required>
+              <button type="submit" class="btn-send">Отправить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- Форма загрузки фото -->
+  <template id="photo-upload-template">
+    <div class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Загрузить фото зоны</h2>
+          <button class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="photo-upload-form">
+            <div class="form-group">
+              <label for="zone">Выберите зону:</label>
+              <select id="zone" name="zone" required>
+                <option value="">Выберите зону</option>
+                <option value="face">Лицо</option>
+                <option value="body">Тело</option>
+                <option value="legs">Ноги</option>
+                <option value="arms">Руки</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="photo">Фото:</label>
+              <input type="file" id="photo" name="photo" accept="image/*" required>
+              <div id="photo-preview" class="photo-preview"></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="photo-comments">Комментарии:</label>
+              <textarea id="photo-comments" name="comments"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Отправить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- JavaScript -->
+  <script src="/js/app.js"></script>
+</body>
+</html> 
