@@ -730,6 +730,36 @@ const care = {
   }
 };
 
+// Методы для работы с рекомендациями
+const referrals = {
+  /**
+   * Добавление рекомендации
+   * @param {string} userId - ID пользователя, который рекомендует
+   * @param {Object} data - Данные рекомендации (телефон, имя и т.д.)
+   * @returns {Object} - Созданная рекомендация
+   */
+  async add(userId, data) {
+    try {
+      // В будущем здесь будет код для работы с БД
+      console.log(`Добавлена рекомендация от пользователя ${userId}:`, data);
+      return { userId, data, createdAt: new Date().toISOString() };
+    } catch (error) {
+      console.error('Ошибка при добавлении рекомендации:', error);
+      return { userId, data, createdAt: new Date().toISOString() };
+    }
+  },
+  
+  /**
+   * Получение всех рекомендаций пользователя
+   * @param {string} userId - ID пользователя
+   * @returns {Array} - Массив рекомендаций
+   */
+  async getByUserId(userId) {
+    // В будущем здесь будет код для работы с БД
+    return [];
+  }
+};
+
 // Экспортируем методы
 module.exports = {
   init,
